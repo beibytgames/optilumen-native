@@ -1,0 +1,27 @@
+name: Build Native DLLs
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Get Vulkan Headers
+        run: git clone --depth 1 https://github.com/KhronosGroup/Vulkan-Headers.git vulkan-headers
+
+      - name: Compile DLLs
+        run: |
+          mkdir out
+          cl /nologo /LD /MT /O2 /EHsc /std:c++17 photon_dlss.cpp /I ngx\include /I vulkan-headers\include /Fo"out\\" /Fe"out\photon_dlss.dll" ngx\lib\nvsdk_ngx_s.lib advapi32.lib user32.lib shell32.lib ole32.lib version.lib
+          cl /nologo /LD /MT /O2 /EHsc /std:c++17 /D_WINDOWS photon_fsr.cpp /I vulkan-headers\include /Fo"out\\" /Fe"out\photon_fsr.dll" user32.lib
+          cl /nologo /LD /MT /O2 /EHsc /std:c++17 photon_xess.cpp /I vulkan-headers\include /Fo"out\\" /Fe"out\photon_xess.dll"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: photon-native-dlls
+          path: out/*.dll
