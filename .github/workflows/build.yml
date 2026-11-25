@@ -11,8 +11,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Get Vulkan Headers
-        run: git clone --depth 1 https://github.com/KhronosGroup/Vulkan-Headers.git vulkan-headers
+      - name: Get Vulkan & XeSS Headers
+        run: |
+          git clone --depth 1 https://github.com/KhronosGroup/Vulkan-Headers.git vulkan-headers
+          git clone --depth 1 https://github.com/intel/xess.git xess-sdk
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue xess\sdk\inc
+          New-Item -ItemType Directory -Force -Path xess\sdk | Out-Null
+          Copy-Item -Recurse -Force xess-sdk\inc xess\sdk\inc
 
       - name: Compile DLLs
         run: |
